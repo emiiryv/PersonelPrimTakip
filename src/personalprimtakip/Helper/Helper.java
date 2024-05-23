@@ -55,6 +55,14 @@ public class Helper {
                 msg="İşlem Başarılı!";
                 title="Sonuç";
                 break;
+            case "error":
+                msg="Bir hata oluştu.";
+                title = "Sonuç";
+                break;
+            case "d":
+                msg="Bir hata oluştu.";
+                title = "Sonuç";
+                break;
             default:
                 msg = str;
                 title = "Mesaj";

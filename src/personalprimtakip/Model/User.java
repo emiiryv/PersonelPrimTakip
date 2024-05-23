@@ -1,6 +1,7 @@
 package personalprimtakip.Model;
 
 import personalprimtakip.Helper.DBConnector;
+import personalprimtakip.Helper.Helper;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -82,28 +83,60 @@ public class User {
                 obj.setType(rs.getString("type"));
                 userList.add(obj);
             }
-
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return userList;
     }
 
-    public static boolean add(String name,String uname,String pass,String type){
-        String query = "INSERT INTO public.user (name,uname,pass,type) VALUES (?,?,?,?)";
-
+    public static boolean add(String name, String uname, String pass, String type) {
+        String query = "INSERT INTO public.user (name, uname, pass, type) VALUES (?, ?, ?, ?::user_type)";
+        User findUser = User.getFetch(uname);
+        if (findUser != null){
+            Helper.showMsg("Bu kullanıcı adı daha önceden eklenmiş.Lütfen farklı bir kullanıcı adı giriniz.");
+            return false;
+        }
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
-            pr.setString(1,name);
-            pr.setString(2,uname);
-            pr.setString(3,pass);
-            pr.setString(4,type);
-            return pr.executeUpdate() != -1;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            pr.setString(1, name);
+            pr.setString(2, uname);
+            pr.setString(3, pass);
+            pr.setString(4, type);
+
+            int response = pr.executeUpdate();
+
+            if (response == -1){
+                Helper.showMsg("error");
+            }
+
+            return response != -1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
         return true;
     }
+
+    public static User getFetch(String uname){
+        User obj = null;
+        String query = "SELECT * FROM public.user WHERE uname = ?";
+        try {
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            pr.setString(1,uname);
+            ResultSet rs = pr.executeQuery();
+            while (rs.next()){
+                obj = new User();
+                obj.setId(rs.getInt("id"));
+                obj.setName(rs.getString("name"));
+                obj.setUname(rs.getString("uname"));
+                obj.setPass(rs.getString("pass"));
+                obj.setType(rs.getString("type"));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return obj;
+    }
+
 
 }
 
