@@ -2,6 +2,7 @@ package personalprimtakip.Model;
 
 import personalprimtakip.Helper.DBConnector;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -87,4 +88,23 @@ public class User {
         }
         return userList;
     }
+
+    public static boolean add(String name,String uname,String pass,String type){
+        String query = "INSERT INTO public.user (name,uname,pass,type) VALUES (?,?,?,?)";
+
+        try {
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            pr.setString(1,name);
+            pr.setString(2,uname);
+            pr.setString(3,pass);
+            pr.setString(4,type);
+            return pr.executeUpdate() != -1;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return true;
+    }
+
 }
+
+
