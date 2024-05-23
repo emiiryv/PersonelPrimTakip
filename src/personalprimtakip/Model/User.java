@@ -137,6 +137,17 @@ public class User {
         return obj;
     }
 
+    public static boolean delete(int id){
+        String query = "DELETE FROM public.user WHERE id = ?";
+        try {
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            pr.setInt(1,id);
+            return pr.executeUpdate() != -1;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return true;
+    }
 
 }
 

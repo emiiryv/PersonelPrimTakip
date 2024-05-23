@@ -6,6 +6,8 @@ import personalprimtakip.Model.Operator;
 import personalprimtakip.Model.User;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,7 +47,15 @@ public class OperatorGUI extends JFrame {
         lbl_welcome.setText("Hoşgeldiniz " + operator.getName());
 
         // ModelUserList
-        mdl_user_list = new DefaultTableModel();
+        mdl_user_list = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column){
+                if (column == 0){
+                    return false;
+                }
+                return super.isCellEditable(row,column);
+            }
+        };
         Object[] col_user_list = {"ID", "Ad", "Kullanıcı Adı", "Şifre", "Üyelik Tipi"};
         mdl_user_list.setColumnIdentifiers(col_user_list);
         row_user_list = new Object[col_user_list.length];
@@ -54,25 +64,44 @@ public class OperatorGUI extends JFrame {
 
         tbl_user_list.setModel(mdl_user_list);
         tbl_user_list.getTableHeader().setReorderingAllowed(false);
-        scrl_user_list.setViewportView(tbl_user_list);
 
-        btn_user_add.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (Helper.isFieldEmpty(fld_user_name) || Helper.isFieldEmpty(fld_user_uname) || Helper.isFieldEmpty(fld_user_pass)) {
-                    Helper.showMsg("fill");
-                } else {
-                    String name = fld_user_name.getText();
-                    String uname = fld_user_uname.getText();
-                    String pass = fld_user_pass.getText();
-                    String type = cbm_user_type.getSelectedItem().toString();
-                    if (User.add(name, uname, pass, type)) {
-                        Helper.showMsg("done");
-                        loadUserModel();  // Tabloyu yenile
-                        fld_user_name.setText(null);
-                        fld_user_uname.setText(null);
-                        fld_user_pass.setText(null);
-                    }
+
+        tbl_user_list.getSelectionModel().addListSelectionListener(e -> {
+            try {
+                String select_user_id = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(),0).toString();
+                fld_user_id.setText(select_user_id);
+            }catch (Exception exception){
+            }
+        });
+
+
+        btn_user_add.addActionListener(e -> {
+            if (Helper.isFieldEmpty(fld_user_name) || Helper.isFieldEmpty(fld_user_uname) || Helper.isFieldEmpty(fld_user_pass)) {
+                Helper.showMsg("fill");
+            } else {
+                String name = fld_user_name.getText();
+                String uname = fld_user_uname.getText();
+                String pass = fld_user_pass.getText();
+                String type = cbm_user_type.getSelectedItem().toString();
+                if (User.add(name, uname, pass, type)) {
+                    Helper.showMsg("done");
+                    loadUserModel();  // Tabloyu yenile
+                    fld_user_name.setText(null);
+                    fld_user_uname.setText(null);
+                    fld_user_pass.setText(null);
+                }
+            }
+        });
+        btn_user_delete.addActionListener(e -> {
+            if (Helper.isFieldEmpty(fld_user_id)){
+                Helper.showMsg("fill");
+            }else {
+                int user_id = Integer.parseInt(fld_user_id.getText());
+                if (User.delete(user_id)){
+                    Helper.showMsg("done");
+                    loadUserModel();
+                }else {
+                    Helper.showMsg("error");
                 }
             }
         });
@@ -101,6 +130,6 @@ public class OperatorGUI extends JFrame {
         op.setPass("123");
         op.setUname("emo");
 
-        new OperatorGUI(op);
+        OperatorGUI opGUI = new OperatorGUI(op);
     }
 }
