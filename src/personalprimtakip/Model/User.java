@@ -135,7 +135,8 @@ public class User {
             throwables.printStackTrace();
         }
         return obj;
-    }public static User getFetch(int id){
+    }
+    public static User getFetch(int id){
         User obj = null;
         String query = "SELECT * FROM public.user WHERE id = ?";
         try {
@@ -144,6 +145,33 @@ public class User {
             ResultSet rs = pr.executeQuery();
             while (rs.next()){
                 obj = new User();
+                obj.setId(rs.getInt("id"));
+                obj.setName(rs.getString("name"));
+                obj.setUname(rs.getString("uname"));
+                obj.setPass(rs.getString("pass"));
+                obj.setType(rs.getString("type"));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return obj;
+    }
+    public static User getFetch(String uname, String  pass){
+        User obj = null;
+        String query = "SELECT * FROM public.user WHERE uname = ? AND pass = ?";
+        try {
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            pr.setString(1, uname);
+            pr.setString(2, pass);
+            ResultSet rs = pr.executeQuery();
+            if (rs.next()){
+                switch (rs.getString("type")){
+                    case "operator":
+                        obj = new Operator();
+                        break;
+                    default:
+                        obj = new User();
+                }
                 obj.setId(rs.getInt("id"));
                 obj.setName(rs.getString("name"));
                 obj.setUname(rs.getString("uname"));

@@ -241,6 +241,7 @@ public class OperatorGUI extends JFrame {
 
         btn_logout.addActionListener(e -> {
             dispose();
+            LoginGUI login = new LoginGUI();
         });
         btn_prim_add.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_prim_name)) {
