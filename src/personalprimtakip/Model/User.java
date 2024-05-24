@@ -135,13 +135,38 @@ public class User {
             throwables.printStackTrace();
         }
         return obj;
+    }public static User getFetch(int id){
+        User obj = null;
+        String query = "SELECT * FROM public.user WHERE id = ?";
+        try {
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            pr.setInt(1, id);
+            ResultSet rs = pr.executeQuery();
+            while (rs.next()){
+                obj = new User();
+                obj.setId(rs.getInt("id"));
+                obj.setName(rs.getString("name"));
+                obj.setUname(rs.getString("uname"));
+                obj.setPass(rs.getString("pass"));
+                obj.setType(rs.getString("type"));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return obj;
     }
 
     public static boolean delete(int id){
         String query = "DELETE FROM public.user WHERE id = ?";
+        ArrayList<Itiraz> itirazList = Itiraz.getListByUser(id);
+        for (Itiraz i : itirazList){
+            Itiraz.delete(i.getId());
+
+        }
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setInt(1, id);
+
             return pr.executeUpdate() != -1;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -200,4 +225,26 @@ public class User {
         System.out.println(query);
         return query;
     }
+    public static ArrayList<User> getListOnlyOperator() {
+        ArrayList<User> userList = new ArrayList<>();
+        String query = "SELECT * FROM public.user WHERE type = 'operator'";
+        User obj;
+        try {
+            Statement st = DBConnector.getInstance().createStatement();
+            ResultSet rs = st.executeQuery(query);
+            while (rs.next()) {
+                obj = new User();
+                obj.setId(rs.getInt("id"));
+                obj.setName(rs.getString("name"));
+                obj.setUname(rs.getString("uname"));
+                obj.setPass(rs.getString("pass"));
+                obj.setType(rs.getString("type"));
+                userList.add(obj);
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return userList;
+    }
+
 }

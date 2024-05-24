@@ -2,6 +2,8 @@ package personalprimtakip.View;
 
 import personalprimtakip.Helper.Config;
 import personalprimtakip.Helper.Helper;
+import personalprimtakip.Helper.Item;
+import personalprimtakip.Model.Itiraz;
 import personalprimtakip.Model.Operator;
 import personalprimtakip.Model.Prim;
 import personalprimtakip.Model.User;
@@ -14,8 +16,9 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 public class OperatorGUI extends JFrame {
+
     private JPanel wrapper;
-    private JTabbedPane tabbedPane1;
+    private JTabbedPane tab_operator;
     private JPanel pnl_user_list;
     private JLabel lbl_welcome;
     private JPanel pnl_top;
@@ -39,11 +42,22 @@ public class OperatorGUI extends JFrame {
     private JTable tbl_prim_list;
     private JTextField fld_prim_name;
     private JButton btn_prim_add;
+    private JPanel pnl_itiraz_list;
+    private JScrollPane scrl_itiraz_list;
+    private JTable tbl_itiraz_list;
+    private JPanel pnl_itiraz_add;
+    private JTextField fld_itiraz_name;
+    private JComboBox cmb_itiraz_operator;
+    private JButton btn_itiraz_add;
+    private JComboBox cmb_itiraz_prim;
+    private JTextField fld_itiraz_status;
     private DefaultTableModel mdl_user_list;
     private Object[] row_user_list;
     private DefaultTableModel mdl_prim_list;
     private Object[] row_prim_list;
     private JPopupMenu primMenu;
+    private DefaultTableModel mdl_itiraz_list;
+    private Object[] row_itiraz_list;
 
     private final Operator operator;
 
@@ -98,7 +112,8 @@ public class OperatorGUI extends JFrame {
                     Helper.showMsg("done");
                 }
                 loadUserModel();
-            }
+                loadOperatorCombo();
+            }   loadItirazModel();
         });
 
         // ## UserList
@@ -113,23 +128,27 @@ public class OperatorGUI extends JFrame {
 
 
         updateMenu.addActionListener(e -> {
-            int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(),0).toString());
+            int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(), 0).toString());
             UpdatePrimGUI updatePrimGUI = new UpdatePrimGUI(Prim.getFetch(select_id));
             updatePrimGUI.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowOpened(WindowEvent e) {
                     loadPrimModel();
+                    loadPrimCombo();
+                    loadItirazModel();
                 }
-             });
+            });
         });
 
         deleteMenu.addActionListener(e -> {
-            if (Helper.confirm("sure")){
-                int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(),0).toString());
+            if (Helper.confirm("sure")) {
+                int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(), 0).toString());
                 if (Prim.delete(select_id)) {
                     Helper.showMsg("done");
                     loadPrimModel();
-                }else {
+                    loadPrimCombo();
+                    loadItirazModel();
+                } else {
                     Helper.showMsg("error");
                 }
             }
@@ -151,10 +170,27 @@ public class OperatorGUI extends JFrame {
             public void mousePressed(MouseEvent e) {
                 Point point = e.getPoint();
                 int selected_row = tbl_prim_list.rowAtPoint(point);
-                tbl_prim_list.setRowSelectionInterval(selected_row,selected_row);
+                tbl_prim_list.setRowSelectionInterval(selected_row, selected_row);
             }
         });
         // ##PrimList
+
+        //İtiraz List
+
+        mdl_itiraz_list = new DefaultTableModel();
+        Object[] col_itirazList = {"ID", "Itiraz Adı", "Durumu", "Prim", "Operator"};
+        mdl_itiraz_list.setColumnIdentifiers(col_itirazList);
+        row_itiraz_list = new Object[col_itirazList.length];
+        loadItirazModel();
+        tbl_itiraz_list.setModel(mdl_itiraz_list);
+        tbl_itiraz_list.getColumnModel().getColumn(0).setMaxWidth(75);
+        tbl_itiraz_list.getTableHeader().setReorderingAllowed(false);
+
+        loadPrimCombo();
+        loadOperatorCombo();
+
+
+        // ## Itiraz List
 
         btn_user_add.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_user_name) || Helper.isFieldEmpty(fld_user_uname) || Helper.isFieldEmpty(fld_user_pass)) {
@@ -166,23 +202,28 @@ public class OperatorGUI extends JFrame {
                 String type = cbm_user_type.getSelectedItem().toString();
                 if (User.add(name, uname, pass, type)) {
                     Helper.showMsg("done");
-                    loadUserModel();  // Tabloyu yenile
-                    fld_user_name.setText(null);
+                    loadUserModel();
+                    loadOperatorCombo();
+                    fld_user_name.setText(null); // Ekleme işlemi başarılı olduğunda, alanları temizleyin
                     fld_user_uname.setText(null);
                     fld_user_pass.setText(null);
                 }
             }
         });
 
+
         btn_user_delete.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_user_id)) {
                 Helper.showMsg("fill");
             } else {
-                if (Helper.confirm("sure")){
+                if (Helper.confirm("sure")) {
                     int user_id = Integer.parseInt(fld_user_id.getText());
                     if (User.delete(user_id)) {
                         Helper.showMsg("done");
                         loadUserModel();
+                        loadOperatorCombo();
+                        loadItirazModel();
+                        fld_user_id.setText(null);
                     } else {
                         Helper.showMsg("error");
                     }
@@ -202,21 +243,74 @@ public class OperatorGUI extends JFrame {
             dispose();
         });
         btn_prim_add.addActionListener(e -> {
-            if (Helper.isFieldEmpty(fld_prim_name)){
+            if (Helper.isFieldEmpty(fld_prim_name)) {
                 Helper.showMsg("fill");
-            }else {
-                if (Prim.add(fld_prim_name.getText())){
+            } else {
+                if (Prim.add(fld_prim_name.getText())) {
                     Helper.showMsg("done");
                     loadPrimModel();
+                    loadPrimCombo();
                     fld_prim_name.setText(null);
-                }else {
+                } else {
                     Helper.showMsg("error");
                 }
             }
         });
 
 
+        cmb_itiraz_operator.addActionListener(e -> {
+            Item primItem = (Item) cmb_itiraz_prim.getSelectedItem();
+            Item operatorItem = (Item) cmb_itiraz_operator.getSelectedItem();
+            if (Helper.isFieldEmpty(fld_prim_name) || Helper.isFieldEmpty(fld_itiraz_status)) {
+                Helper.showMsg("fill");
+            } else {
+                if (Itiraz.add(operatorItem.getKey(), primItem.getKey(), fld_itiraz_name.getText(), fld_itiraz_status.getText())) {
+                    Helper.showMsg("done");
+                    loadItirazModel();
+                    fld_itiraz_name.setText(null);
+                    fld_itiraz_status.setText(null);
+                } else {
+                    Helper.showMsg("error");
+                }
+            }
+        });
 
+        btn_itiraz_add.addActionListener(e -> {
+            Item primItem = (Item) cmb_itiraz_prim.getSelectedItem();
+            Item operatorItem = (Item) cmb_itiraz_operator.getSelectedItem();
+            if (Helper.isFieldEmpty(fld_itiraz_name) || Helper.isFieldEmpty(fld_itiraz_status)) {
+                Helper.showMsg("fill");
+            } else {
+                if (Itiraz.add(operatorItem.getKey(), primItem.getKey(), fld_itiraz_name.getText(), fld_itiraz_status.getText())) {
+                    Helper.showMsg("done");
+                    loadItirazModel();
+                    fld_itiraz_name.setText(null); // Ekleme işlemi başarılı olduğunda, alanları temizleyin
+                    fld_itiraz_status.setText(null);
+                } else {
+                    Helper.showMsg("error");
+                }
+            }
+        });
+
+    }
+
+        private void loadItirazModel() {
+        DefaultTableModel clearModel = (DefaultTableModel) tbl_itiraz_list.getModel();
+        clearModel.setRowCount(0);
+        int i = 0;
+        for (Itiraz obj : Itiraz.getList()){
+            i= 0;
+            row_itiraz_list[i++] =  obj.getId();
+            row_itiraz_list[i++] =  obj.getName();
+            row_itiraz_list[i++] =  obj.getStatus();
+            row_itiraz_list[i++] =  obj.getPrim().getName();
+            row_itiraz_list[i++] =  obj.getOperator().getName();
+            mdl_itiraz_list.addRow(row_itiraz_list);
+
+
+
+
+        }
     }
 
     private void loadPrimModel() {
@@ -261,6 +355,20 @@ public class OperatorGUI extends JFrame {
         }
     }
 
+    public void loadPrimCombo(){
+        cmb_itiraz_prim.removeAllItems();
+        for (Prim obj : Prim.getList()){
+            cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
+        }
+    }
+
+    public void loadOperatorCombo(){
+        cmb_itiraz_operator.removeAllItems();
+        for (User obj : User.getListOnlyOperator()){
+                cmb_itiraz_operator.addItem(new Item(obj.getId(),obj.getName()));
+        }
+    }
+
     public static void main(String[] args) {
         Helper.setLayout();
         Operator op = new Operator();
@@ -271,6 +379,7 @@ public class OperatorGUI extends JFrame {
 
         OperatorGUI opGUI = new OperatorGUI(op);
     }
+
 
     private void createUIComponents() {
         // TODO: place custom component creation code here

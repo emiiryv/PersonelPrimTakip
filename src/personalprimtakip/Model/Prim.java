@@ -76,6 +76,12 @@ public class Prim {
 
     public static boolean delete(int id) {
         String query = "DELETE FROM public.primlistesi WHERE id = ?";
+        ArrayList<Itiraz> itirazList = Itiraz.getList();
+        for (Itiraz obj : itirazList){
+            if (obj.getPrim().getId() == id){
+                Itiraz.delete(obj.getId());
+            }
+        }
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setInt(1, id);
