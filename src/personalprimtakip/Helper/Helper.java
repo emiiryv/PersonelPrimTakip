@@ -59,7 +59,7 @@ public class Helper {
                 msg="Bir hata oluştu.";
                 title = "Sonuç";
                 break;
-            case "d":
+            case "s":
                 msg="Bir hata oluştu.";
                 title = "Sonuç";
                 break;
@@ -73,6 +73,20 @@ public class Helper {
 
     public static void optionPageTR(){
         UIManager.put("Optionpane.okButtonText","Tamam");
+    }
+
+    public static boolean confirm(String str){
+        String msg;
+
+        switch (str){
+            case "sure":
+                msg = "Bu işlemi gerçekleştirmek istediğinize emin misiniz?";
+                break;
+            default:
+                msg = str;
+        }
+
+        return JOptionPane.showConfirmDialog(null,msg,"Son kararın mı?",JOptionPane.YES_NO_OPTION) == 0;
     }
 
 }

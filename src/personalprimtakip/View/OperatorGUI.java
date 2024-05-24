@@ -3,13 +3,14 @@ package personalprimtakip.View;
 import personalprimtakip.Helper.Config;
 import personalprimtakip.Helper.Helper;
 import personalprimtakip.Model.Operator;
+import personalprimtakip.Model.Prim;
 import personalprimtakip.Model.User;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class OperatorGUI extends JFrame {
@@ -33,8 +34,16 @@ public class OperatorGUI extends JFrame {
     private JTextField fld_sh_user_uname;
     private JComboBox cmb_sh_user_type;
     private JButton btn_user_sh;
+    private JPanel pnl_prim_add;
+    private JScrollPane scrl_prim_list;
+    private JTable tbl_prim_list;
+    private JTextField fld_prim_name;
+    private JButton btn_prim_add;
     private DefaultTableModel mdl_user_list;
     private Object[] row_user_list;
+    private DefaultTableModel mdl_prim_list;
+    private Object[] row_prim_list;
+    private JPopupMenu primMenu;
 
     private final Operator operator;
 
@@ -50,11 +59,11 @@ public class OperatorGUI extends JFrame {
 
         lbl_welcome.setText("Hoşgeldiniz " + operator.getName());
 
-        // ModelUserList
-        mdl_user_list = new DefaultTableModel(){
+        // UserList
+        mdl_user_list = new DefaultTableModel() {
             @Override
-            public boolean isCellEditable(int row, int column){
-                if (column == 0){
+            public boolean isCellEditable(int row, int column) {
+                if (column == 0) {
                     return false;
                 }
                 return super.isCellEditable(row, column);
@@ -73,24 +82,79 @@ public class OperatorGUI extends JFrame {
             try {
                 String select_user_id = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 0).toString();
                 fld_user_id.setText(select_user_id);
-            } catch (Exception exception){
+            } catch (Exception exception) {
             }
         });
 
         tbl_user_list.getModel().addTableModelListener(e -> {
-            if (e.getType() == TableModelEvent.UPDATE){
+            if (e.getType() == TableModelEvent.UPDATE) {
                 int user_id = Integer.parseInt(tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 0).toString());
                 String user_name = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 1).toString();
                 String user_uname = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 2).toString();
                 String user_pass = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 3).toString();
                 String user_type = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 4).toString();
 
-                if (User.update(user_id, user_name, user_uname, user_pass, user_type)){
+                if (User.update(user_id, user_name, user_uname, user_pass, user_type)) {
                     Helper.showMsg("done");
                 }
                 loadUserModel();
             }
         });
+
+        // ## UserList
+
+        // PrimList
+
+        primMenu = new JPopupMenu();
+        JMenuItem updateMenu = new JMenuItem("Güncelle");
+        JMenuItem deleteMenu = new JMenuItem("Sil");
+        primMenu.add(updateMenu);
+        primMenu.add(deleteMenu);
+
+
+        updateMenu.addActionListener(e -> {
+            int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(),0).toString());
+            UpdatePrimGUI updatePrimGUI = new UpdatePrimGUI(Prim.getFetch(select_id));
+            updatePrimGUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    loadPrimModel();
+                }
+             });
+        });
+
+        deleteMenu.addActionListener(e -> {
+            if (Helper.confirm("sure")){
+                int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(),0).toString());
+                if (Prim.delete(select_id)) {
+                    Helper.showMsg("done");
+                    loadPrimModel();
+                }else {
+                    Helper.showMsg("error");
+                }
+            }
+
+        });
+        mdl_prim_list = new DefaultTableModel();
+        Object[] col_prim_list = {"ID", "Prim Listesi"};
+        mdl_prim_list.setColumnIdentifiers(col_prim_list);
+        row_prim_list = new Object[col_prim_list.length];
+        loadPrimModel();
+
+        tbl_prim_list.setModel(mdl_prim_list);
+        tbl_prim_list.setComponentPopupMenu(primMenu);
+        tbl_prim_list.getTableHeader().setReorderingAllowed(false);
+        tbl_prim_list.getColumnModel().getColumn(0).setMaxWidth(75);
+
+        tbl_prim_list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                Point point = e.getPoint();
+                int selected_row = tbl_prim_list.rowAtPoint(point);
+                tbl_prim_list.setRowSelectionInterval(selected_row,selected_row);
+            }
+        });
+        // ##PrimList
 
         btn_user_add.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_user_name) || Helper.isFieldEmpty(fld_user_uname) || Helper.isFieldEmpty(fld_user_pass)) {
@@ -111,15 +175,17 @@ public class OperatorGUI extends JFrame {
         });
 
         btn_user_delete.addActionListener(e -> {
-            if (Helper.isFieldEmpty(fld_user_id)){
+            if (Helper.isFieldEmpty(fld_user_id)) {
                 Helper.showMsg("fill");
-            }else {
-                int user_id = Integer.parseInt(fld_user_id.getText());
-                if (User.delete(user_id)){
-                    Helper.showMsg("done");
-                    loadUserModel();
-                }else {
-                    Helper.showMsg("error");
+            } else {
+                if (Helper.confirm("sure")){
+                    int user_id = Integer.parseInt(fld_user_id.getText());
+                    if (User.delete(user_id)) {
+                        Helper.showMsg("done");
+                        loadUserModel();
+                    } else {
+                        Helper.showMsg("error");
+                    }
                 }
             }
         });
@@ -135,14 +201,42 @@ public class OperatorGUI extends JFrame {
         btn_logout.addActionListener(e -> {
             dispose();
         });
+        btn_prim_add.addActionListener(e -> {
+            if (Helper.isFieldEmpty(fld_prim_name)){
+                Helper.showMsg("fill");
+            }else {
+                if (Prim.add(fld_prim_name.getText())){
+                    Helper.showMsg("done");
+                    loadPrimModel();
+                    fld_prim_name.setText(null);
+                }else {
+                    Helper.showMsg("error");
+                }
+            }
+        });
+
+
+
+    }
+
+    private void loadPrimModel() {
+        DefaultTableModel clearModel = (DefaultTableModel) tbl_prim_list.getModel();
+        clearModel.setRowCount(0);
+        int i = 0;
+        for (Prim obj : Prim.getList()) {
+            i = 0;
+            row_prim_list[i++] = obj.getId();
+            row_prim_list[i++] = obj.getName();
+            mdl_prim_list.addRow(row_prim_list);
+        }
     }
 
     public void loadUserModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_user_list.getModel();
         clearModel.setRowCount(0);
-
+        int i = 0;
         for (User obj : User.getList()) {
-            int i = 0;
+            i = 0;
             row_user_list[i++] = obj.getId();
             row_user_list[i++] = obj.getName();
             row_user_list[i++] = obj.getUname();
