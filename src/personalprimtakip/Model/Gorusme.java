@@ -2,10 +2,7 @@ package personalprimtakip.Model;
 
 import personalprimtakip.Helper.DBConnector;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 public class Gorusme {
@@ -128,6 +125,21 @@ public class Gorusme {
             throwables.printStackTrace();
         }
         return true;
+    }
+
+    public static boolean updateGorusmeDurumu(int gorusmeId, String yeniDurum) {
+        String query = "CALL update_gorusme_durumu(?, ?)";
+
+        try (Connection conn = DBConnector.getInstance();
+             PreparedStatement preparedStatement = conn.prepareStatement(query)) {
+            preparedStatement.setInt(1, gorusmeId);
+            preparedStatement.setString(2, yeniDurum);
+            preparedStatement.executeUpdate();
+            return true;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
 
 }

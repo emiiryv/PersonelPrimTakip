@@ -81,6 +81,7 @@ public class AsistanGUI extends JFrame {
         });
 
         cmb_prim_listesi.addActionListener(e -> {
+            loadPrimComboBox();
             Prim selectedPrim = (Prim) cmb_prim_listesi.getSelectedItem();
             if (selectedPrim != null) {
                 System.out.println("Seçilen Prim: " + selectedPrim.getName());
