@@ -47,10 +47,11 @@ public class OperatorGUI extends JFrame {
     private JTable tbl_itiraz_list;
     private JPanel pnl_itiraz_add;
     private JTextField fld_itiraz_name;
-    private JComboBox cmb_itiraz_operator;
+    private JComboBox<Item> cmb_itiraz_operator;
     private JButton btn_itiraz_add;
-    private JComboBox cmb_itiraz_prim;
+    private JComboBox<Item> cmb_itiraz_prim;
     private JTextField fld_itiraz_status;
+    private JComboBox cmb_itiraz_sec;
     private DefaultTableModel mdl_user_list;
     private Object[] row_user_list;
     private DefaultTableModel mdl_prim_list;
@@ -77,10 +78,7 @@ public class OperatorGUI extends JFrame {
         mdl_user_list = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
-                if (column == 0) {
-                    return false;
-                }
-                return super.isCellEditable(row, column);
+                return column != 0;
             }
         };
         Object[] col_user_list = {"ID", "Ad", "Kullanıcı Adı", "Şifre", "Üyelik Tipi"};
@@ -97,6 +95,7 @@ public class OperatorGUI extends JFrame {
                 String select_user_id = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 0).toString();
                 fld_user_id.setText(select_user_id);
             } catch (Exception exception) {
+                exception.printStackTrace();
             }
         });
 
@@ -113,19 +112,16 @@ public class OperatorGUI extends JFrame {
                 }
                 loadUserModel();
                 loadOperatorCombo();
-            }   loadItirazModel();
+            }
+            loadItirazModel();
         });
 
-        // ## UserList
-
         // PrimList
-
         primMenu = new JPopupMenu();
         JMenuItem updateMenu = new JMenuItem("Güncelle");
         JMenuItem deleteMenu = new JMenuItem("Sil");
         primMenu.add(updateMenu);
         primMenu.add(deleteMenu);
-
 
         updateMenu.addActionListener(e -> {
             int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(), 0).toString());
@@ -152,8 +148,8 @@ public class OperatorGUI extends JFrame {
                     Helper.showMsg("error");
                 }
             }
-
         });
+
         mdl_prim_list = new DefaultTableModel();
         Object[] col_prim_list = {"ID", "Prim Listesi"};
         mdl_prim_list.setColumnIdentifiers(col_prim_list);
@@ -173,10 +169,8 @@ public class OperatorGUI extends JFrame {
                 tbl_prim_list.setRowSelectionInterval(selected_row, selected_row);
             }
         });
-        // ##PrimList
 
-        //İtiraz List
-
+        // Itiraz List
         mdl_itiraz_list = new DefaultTableModel();
         Object[] col_itirazList = {"ID", "Itiraz Adı", "Durumu", "Prim", "Operator"};
         mdl_itiraz_list.setColumnIdentifiers(col_itirazList);
@@ -189,9 +183,7 @@ public class OperatorGUI extends JFrame {
         loadPrimCombo();
         loadOperatorCombo();
 
-
-        // ## Itiraz List
-
+        // Event Listeners
         btn_user_add.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_user_name) || Helper.isFieldEmpty(fld_user_uname) || Helper.isFieldEmpty(fld_user_pass)) {
                 Helper.showMsg("fill");
@@ -210,7 +202,6 @@ public class OperatorGUI extends JFrame {
                 }
             }
         });
-
 
         btn_user_delete.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_user_id)) {
@@ -241,8 +232,9 @@ public class OperatorGUI extends JFrame {
 
         btn_logout.addActionListener(e -> {
             dispose();
-            LoginGUI login = new LoginGUI();
+            new LoginGUI();
         });
+
         btn_prim_add.addActionListener(e -> {
             if (Helper.isFieldEmpty(fld_prim_name)) {
                 Helper.showMsg("fill");
@@ -259,58 +251,22 @@ public class OperatorGUI extends JFrame {
         });
 
 
-        cmb_itiraz_operator.addActionListener(e -> {
-            Item primItem = (Item) cmb_itiraz_prim.getSelectedItem();
-            Item operatorItem = (Item) cmb_itiraz_operator.getSelectedItem();
-            if (Helper.isFieldEmpty(fld_prim_name) || Helper.isFieldEmpty(fld_itiraz_status)) {
-                Helper.showMsg("fill");
-            } else {
-                if (Itiraz.add(operatorItem.getKey(), primItem.getKey(), fld_itiraz_name.getText(), fld_itiraz_status.getText())) {
-                    Helper.showMsg("done");
-                    loadItirazModel();
-                    fld_itiraz_name.setText(null);
-                    fld_itiraz_status.setText(null);
-                } else {
-                    Helper.showMsg("error");
-                }
-            }
-        });
 
-        btn_itiraz_add.addActionListener(e -> {
-            Item primItem = (Item) cmb_itiraz_prim.getSelectedItem();
-            Item operatorItem = (Item) cmb_itiraz_operator.getSelectedItem();
-            if (Helper.isFieldEmpty(fld_itiraz_name) || Helper.isFieldEmpty(fld_itiraz_status)) {
-                Helper.showMsg("fill");
-            } else {
-                if (Itiraz.add(operatorItem.getKey(), primItem.getKey(), fld_itiraz_name.getText(), fld_itiraz_status.getText())) {
-                    Helper.showMsg("done");
-                    loadItirazModel();
-                    fld_itiraz_name.setText(null); // Ekleme işlemi başarılı olduğunda, alanları temizleyin
-                    fld_itiraz_status.setText(null);
-                } else {
-                    Helper.showMsg("error");
-                }
-            }
-        });
 
     }
 
-        private void loadItirazModel() {
+    private void loadItirazModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_itiraz_list.getModel();
         clearModel.setRowCount(0);
         int i = 0;
-        for (Itiraz obj : Itiraz.getList()){
-            i= 0;
-            row_itiraz_list[i++] =  obj.getId();
-            row_itiraz_list[i++] =  obj.getName();
-            row_itiraz_list[i++] =  obj.getStatus();
-            row_itiraz_list[i++] =  obj.getPrim().getName();
-            row_itiraz_list[i++] =  obj.getOperator().getName();
+        for (Itiraz obj : Itiraz.getList()) {
+            i = 0;
+            row_itiraz_list[i++] = obj.getId();
+            row_itiraz_list[i++] = obj.getName();
+            row_itiraz_list[i++] = obj.getStatus();
+            row_itiraz_list[i++] = obj.getPrim().getName();
+            row_itiraz_list[i++] = obj.getOperator().getName();
             mdl_itiraz_list.addRow(row_itiraz_list);
-
-
-
-
         }
     }
 
@@ -344,7 +300,6 @@ public class OperatorGUI extends JFrame {
     public void loadUserModel(ArrayList<User> list) {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_user_list.getModel();
         clearModel.setRowCount(0);
-
         for (User obj : list) {
             int i = 0;
             row_user_list[i++] = obj.getId();
@@ -356,17 +311,17 @@ public class OperatorGUI extends JFrame {
         }
     }
 
-    public void loadPrimCombo(){
+    public void loadPrimCombo() {
         cmb_itiraz_prim.removeAllItems();
-        for (Prim obj : Prim.getList()){
+        for (Prim obj : Prim.getList()) {
             cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
         }
     }
 
-    public void loadOperatorCombo(){
+    public void loadOperatorCombo() {
         cmb_itiraz_operator.removeAllItems();
-        for (User obj : User.getListOnlyOperator()){
-                cmb_itiraz_operator.addItem(new Item(obj.getId(),obj.getName()));
+        for (User obj : User.getListOnlyOperator()) {
+            cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
         }
     }
 
@@ -378,9 +333,8 @@ public class OperatorGUI extends JFrame {
         op.setPass("123");
         op.setUname("emo");
 
-        OperatorGUI opGUI = new OperatorGUI(op);
+        new OperatorGUI(op);
     }
-
 
     private void createUIComponents() {
         // TODO: place custom component creation code here

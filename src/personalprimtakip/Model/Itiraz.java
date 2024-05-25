@@ -14,20 +14,21 @@ public class Itiraz {
     private int prim_id;
     private String name;
     private String status;
+    private String aciklama; // Yeni eklenen açıklama alanı
 
     private Prim prim;
     private User operator;
 
-    public Itiraz(int id, int user_id, int prim_id, String name, String status) {
+    public Itiraz(int id, int user_id, int prim_id, String name, String status, String aciklama) {
         this.id = id;
         this.user_id = user_id;
         this.prim_id = prim_id;
         this.name = name;
         this.status = status;
+        this.aciklama = aciklama; // Yeni eklenen açıklama alanı
         this.prim = Prim.getFetch(prim_id);
         this.operator = User.getFetch(user_id);
     }
-
 
     public int getId() {
         return id;
@@ -69,6 +70,14 @@ public class Itiraz {
         this.status = status;
     }
 
+    public String getAciklama() {
+        return aciklama;
+    }
+
+    public void setAciklama(String aciklama) {
+        this.aciklama = aciklama;
+    }
+
     public Prim getPrim() {
         return prim;
     }
@@ -85,7 +94,7 @@ public class Itiraz {
         this.operator = operator;
     }
 
-    public static ArrayList<Itiraz> getList(){
+    public static ArrayList<Itiraz> getList() {
         ArrayList<Itiraz> itirazList = new ArrayList<>();
 
         Itiraz obj;
@@ -93,13 +102,14 @@ public class Itiraz {
         try {
             Statement st = DBConnector.getInstance().createStatement();
             ResultSet rs = st.executeQuery("SELECT * FROM public.itiraz");
-            while (rs.next()){
+            while (rs.next()) {
                 int id = rs.getInt("id");
                 int user_id = rs.getInt("user_id");
                 int prim_id = rs.getInt("prim_id");
                 String name = rs.getString("name");
                 String status = rs.getString("status");
-                obj = new Itiraz(id,user_id,prim_id,name,status);
+                String aciklama = rs.getString("aciklama"); // Açıklama alanını da oku
+                obj = new Itiraz(id, user_id, prim_id, name, status, aciklama);
                 itirazList.add(obj);
             }
         } catch (SQLException throwables) {
@@ -108,15 +118,16 @@ public class Itiraz {
         return itirazList;
     }
 
-    public static boolean add(int user_id,int prim_id,String name,String status){
-        String query = "INSERT INTO public.itiraz (user_id,prim_id,name,status) VALUES (?,?,?,?)";
+    public static boolean add(int user_id, int prim_id, String name, String status, String aciklama) {
+        String query = "INSERT INTO public.itiraz (user_id, prim_id, name, status, aciklama) VALUES (?, ?, ?, ?, ?)";
 
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
-            pr.setInt(1,user_id);
-            pr.setInt(2,prim_id);
-            pr.setString(3,name);
-            pr.setString(4,status);
+            pr.setInt(1, user_id);
+            pr.setInt(2, prim_id);
+            pr.setString(3, name);
+            pr.setString(4, status);
+            pr.setString(5, aciklama); // Açıklama alanını da ekle
             return pr.executeUpdate() != -1;
 
         } catch (SQLException throwables) {
@@ -124,7 +135,8 @@ public class Itiraz {
         }
         return true;
     }
-    public static ArrayList<Itiraz> getListByUser(int user_id){
+
+    public static ArrayList<Itiraz> getListByUser(int user_id) {
         ArrayList<Itiraz> itirazList = new ArrayList<>();
         Itiraz obj;
         try {
@@ -136,7 +148,8 @@ public class Itiraz {
                 int prim_id = rs.getInt("prim_id");
                 String name = rs.getString("name");
                 String status = rs.getString("status");
-                obj = new Itiraz(id,userID,prim_id,name,status);
+                String aciklama = rs.getString("aciklama"); // Açıklama alanını da oku
+                obj = new Itiraz(id, userID, prim_id, name, status, aciklama);
                 itirazList.add(obj);
             }
         } catch (SQLException throwables) {
@@ -144,7 +157,8 @@ public class Itiraz {
         }
         return itirazList;
     }
-    public static boolean delete(int id){
+
+    public static boolean delete(int id) {
         String query = "DELETE FROM public.itiraz WHERE id = ?";
         ArrayList<Itiraz> itirazList = Itiraz.getListByUser(id);
 
@@ -158,5 +172,4 @@ public class Itiraz {
         }
         return true;
     }
-
 }

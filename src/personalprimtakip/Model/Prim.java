@@ -5,7 +5,6 @@ import personalprimtakip.Helper.DBConnector;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 public class Prim {
@@ -33,82 +32,82 @@ public class Prim {
         this.name = name;
     }
 
-    public static ArrayList<Prim> getList(){
+    // Primleri listeleme metodu
+    public static ArrayList<Prim> getList() {
         ArrayList<Prim> primList = new ArrayList<>();
-        Prim obj;
-
+        String query = "SELECT * FROM public.primlistesi";
         try {
-         Statement st = DBConnector.getInstance().createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM public.primlistesi");
-            while (rs.next()){
-                obj = new Prim(rs.getInt("id"),rs.getString("name"));
-                primList.add(obj);
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            ResultSet rs = pr.executeQuery();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                Prim prim = new Prim(id, name);
+                primList.add(prim);
             }
-        } catch (SQLException throwables){
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return primList;
     }
 
-    public static boolean add(String name){
+    // Prim ekleme metodu
+    public static boolean add(String name) {
         String query = "INSERT INTO public.primlistesi (name) VALUES (?)";
-        try{
-            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
-            pr.setString(1,name);
-            return  pr.executeUpdate() != -1;
-        }catch (SQLException throwables){
-            throwables.printStackTrace();
-        }
-        return true;
-    }
-    public static boolean update(int id, String name) {
-        String query = "UPDATE public.primlistesi SET name = ? WHERE id = ?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setString(1, name);
-            pr.setInt(2, id);
             return pr.executeUpdate() != -1;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }
 
+    // Prim silme metodu
     public static boolean delete(int id) {
-        String query = "DELETE FROM public.primlistesi WHERE id = ?";
-        ArrayList<Itiraz> itirazList = Itiraz.getList();
-        for (Itiraz obj : itirazList){
-            if (obj.getPrim().getId() == id){
-                Itiraz.delete(obj.getId());
-            }
-        }
+        String query = "DELETE FROM public.primlistesi WHERE id=?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setInt(1, id);
             return pr.executeUpdate() != -1;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
-
-    public static Prim getFetch(int id){
-        Prim obj = null;
-        String query = "SELECT * FROM public.primlistesi WHERE id = ?";
-
+    public static Prim getFetch(int id) {
+        String query = "SELECT * FROM public.primlistesi WHERE id=?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
-            pr.setInt(1,id);
+            pr.setInt(1, id);
             ResultSet rs = pr.executeQuery();
-            if (rs.next()){
-                obj = new Prim(rs.getInt("id"),rs.getString("name"));
-
+            if (rs.next()) {
+                String name = rs.getString("name");
+                return new Prim(id, name);
             }
-        } catch (SQLException throwables){
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return obj;
+        return null; // Eğer bir hata oluşursa veya sonuç bulunamazsa null döndürülür
+    }
+    public static boolean update(int id, String newName) {
+        String query = "UPDATE public.primlistesi SET name=? WHERE id=?";
+        try {
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            pr.setString(1, newName);
+            pr.setInt(2, id);
+            return pr.executeUpdate() != -1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 
+    // JComboBox'ta doğru bir şekilde görüntülenmesi için toString metodu
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }
