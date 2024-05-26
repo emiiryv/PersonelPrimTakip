@@ -3,6 +3,7 @@ package personalprimtakip.View;
 import personalprimtakip.Helper.Config;
 import personalprimtakip.Helper.Helper;
 import personalprimtakip.Model.Gorusme;
+import personalprimtakip.Model.Itiraz;
 import personalprimtakip.Model.Prim;
 import personalprimtakip.Model.User;
 
@@ -23,10 +24,10 @@ public class AsistanGUI extends JFrame {
     private JComboBox<String> cmb_gorusme_konusu;
     private JComboBox<Prim> cmb_prim_listesi; // Primler için JComboBox
     private JTable tbl_prim_list;
-    private JComboBox cmb_prim_itiraz_listesi;
+    private JComboBox<Prim> cmb_prim_itiraz_listesi; // Primler için itiraz JComboBox
     private JTextField fld_prim_itiraz_aciklama;
     private JButton btn_gonder;
-    private JTabbedPane tabbedPane2;
+    private JTable tbl_itirazlarim; // Kullanıcının itirazlarını göstermek için tablo
 
     private User currentUser;
 
@@ -42,8 +43,9 @@ public class AsistanGUI extends JFrame {
         currentUser = LoginGUI.getCurrentUser(); // Oturum açan kullanıcıyı al
 
         loadPrimComboBox(); // Prim ComboBox'ı yükle
+        loadPrimTable(); // Prim tablosunu yükle
         loadGorusmeTable(); // Görüşme listesini yükle
-        loadPrimTable(); // Itiraz edilecek prim listesini yükle
+        loadItirazTable(); // Kullanıcının itirazlarını yükle
 
         btn_cikis.addActionListener(e -> {
             dispose();
@@ -70,7 +72,6 @@ public class AsistanGUI extends JFrame {
 
                 if (Gorusme.add(user_id, prim_id, name, tarih, gorusme_konusu, gorusme_durumu)) {
                     Helper.showMsg("done");
-                    // Tablo ve diğer bileşenleri güncellemek için gerekli metotları çağırın
                     fld_musteri_adi.setText(null); // Ekleme işlemi başarılı olduğunda, alanları temizleyin
                     fld_gorusme_tarihi.setText(null);
                     loadGorusmeTable(); // Görüşme listesini güncelle
@@ -81,18 +82,34 @@ public class AsistanGUI extends JFrame {
         });
 
         cmb_prim_listesi.addActionListener(e -> {
-            loadPrimComboBox();
             Prim selectedPrim = (Prim) cmb_prim_listesi.getSelectedItem();
             if (selectedPrim != null) {
                 System.out.println("Seçilen Prim: " + selectedPrim.getName());
-                // Seçilen prim ile ilgili başka işlemler yapmak isterseniz buraya ekleyebilirsiniz
             }
         });
+
+        btn_gonder.addActionListener(e -> {
+            Prim selectedPrim = (Prim) cmb_prim_itiraz_listesi.getSelectedItem();
+            String aciklama = fld_prim_itiraz_aciklama.getText();
+            if (selectedPrim != null && !aciklama.isEmpty()) {
+                System.out.println("Itiraz Edilen Prim: " + selectedPrim.getName());
+                if (Itiraz.add(currentUser.getId(), selectedPrim.getId(), selectedPrim.getName(), "Beklemede", aciklama)) {
+                    Helper.showMsg("done");
+                    loadItirazTable(); // Itiraz listesini güncelle
+                    fld_prim_itiraz_aciklama.setText(null); // Alanı temizle
+                } else {
+                    Helper.showMsg("error");
+                }
+            } else {
+                Helper.showMsg("fill");
+            }
+        });
+
         tbl_gorusme_listesi.addComponentListener(new ComponentAdapter() {
         });
-        loadPrimComboBox();
-    }
 
+        loadPrimComboBox(); // Combobox'ı doldurmak için metodu çağır
+    }
 
     private void loadGorusmeTable() {
         DefaultTableModel gorusmeModel = new DefaultTableModel();
@@ -122,33 +139,53 @@ public class AsistanGUI extends JFrame {
 
     private void loadPrimComboBox() {
         cmb_prim_itiraz_listesi.removeAllItems(); // Önce mevcut öğeleri temizle
+        cmb_prim_listesi.removeAllItems(); // Önce mevcut öğeleri temizle
         ArrayList<Prim> primList = Prim.getList(); // Tüm primleri al
 
         for (Prim prim : primList) {
             cmb_prim_itiraz_listesi.addItem(prim); // Combobox'a her bir primi ekle
+            cmb_prim_listesi.addItem(prim); // Combobox'a her bir primi ekle
         }
     }
 
-
-
     private void loadPrimTable() {
-        DefaultTableModel primTableModel = new DefaultTableModel();
-        primTableModel.addColumn("ID");
-        primTableModel.addColumn("Ad");
-        // Diğer sütunları ekleyin
+        DefaultTableModel primModel = new DefaultTableModel();
+        primModel.addColumn("ID");
+        primModel.addColumn("Ad");
 
         ArrayList<Prim> primList = Prim.getList();
         for (Prim prim : primList) {
-            primTableModel.addRow(new Object[]{
+            primModel.addRow(new Object[]{
                     prim.getId(),
-                    prim.getName(),
-                    // Diğer sütunları buraya ekleyin
+                    prim.getName()
             });
         }
 
-        tbl_prim_list.setModel(primTableModel);
+        tbl_prim_list.setModel(primModel);
     }
 
+    private void loadItirazTable() {
+        DefaultTableModel itirazModel = new DefaultTableModel();
+        itirazModel.addColumn("ID");
+        itirazModel.addColumn("Prim Adı");
+        itirazModel.addColumn("Durum");
+        itirazModel.addColumn("Açıklama");
+        ArrayList<Itiraz> itirazList = Itiraz.getListByUser(currentUser.getId());
+        for (Itiraz itiraz : itirazList) {
+            int primId = itiraz.getPrim_id();
+            Prim prim = Prim.getFetch(primId); // Veritabanından ilgili Prim nesnesini al
+            String primName = prim != null ? prim.getName() : ""; // Prim nesnesi varsa ismini al, yoksa boş string ata
+            itirazModel.addRow(new Object[]{
+                    itiraz.getId(), // getId() metodu buradan erişilebilir
+                    primName,
+                    itiraz.getStatus(),
+                    itiraz.getAciklama()
+            });
+        }
+
+
+        tbl_itirazlarim.setModel(itirazModel);
+    }
 
     public static void main(String[] args) {
         Helper.setLayout();
@@ -157,5 +194,8 @@ public class AsistanGUI extends JFrame {
 
     private void createUIComponents() {
         cmb_prim_listesi = new JComboBox<>(); // JComboBox'ı oluşturun
+        cmb_prim_itiraz_listesi = new JComboBox<>(); // JComboBox'ı oluşturun
+        tbl_itirazlarim = new JTable(); // JTable'ı oluşturun
     }
 }
+

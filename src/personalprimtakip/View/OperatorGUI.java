@@ -48,10 +48,11 @@ public class OperatorGUI extends JFrame {
     private JPanel pnl_itiraz_add;
     private JTextField fld_itiraz_name;
     private JComboBox<Item> cmb_itiraz_operator;
-    private JButton btn_itiraz_add;
+    private JButton btn_itiraz_cevap;
     private JComboBox<Item> cmb_itiraz_prim;
-    private JTextField fld_itiraz_status;
     private JComboBox cmb_itiraz_sec;
+    private JComboBox cmb_cevap;
+    private JTextField txt_itiraz_id;
     private DefaultTableModel mdl_user_list;
     private Object[] row_user_list;
     private DefaultTableModel mdl_prim_list;
@@ -250,25 +251,95 @@ public class OperatorGUI extends JFrame {
             }
         });
 
+        loadItirazComboBox();
 
+
+        tbl_itiraz_list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                Point point = e.getPoint();
+                int selected_row = tbl_prim_list.rowAtPoint(point);
+                tbl_itiraz_list.setRowSelectionInterval(selected_row, selected_row);
+            }
+        });
+
+
+
+
+
+
+        cmb_itiraz_sec.addActionListener(e -> {
+            // Seçilen itirazın adını al
+            String selectedItirazName = (String) cmb_itiraz_sec.getSelectedItem();
+
+            // Seçilen itirazın detaylarını al
+            Itiraz selectedItiraz = getItirazByName(selectedItirazName);
+
+            // Detayları tabloya ekle
+            if (selectedItiraz != null) {
+                DefaultTableModel model = (DefaultTableModel) tbl_itiraz_list.getModel();
+                model.setRowCount(0); // Tabloyu temizle
+                model.addRow(new Object[]{
+                        selectedItiraz.getId(),
+                        selectedItiraz.getUser_id(),
+                        selectedItiraz.getPrim_id(),
+                        selectedItiraz.getStatus(),
+                        selectedItiraz.getAciklama()
+                });
+            }
+        });
+
+
+        btn_itiraz_cevap.addActionListener(e -> {
+
+                System.out.println("Gönder butonuna tıklandı!");
+
+
+            /*
+            // txt_itiraz_id bileşeninden itirazın ID'sini al
+            int itirazId = Integer.parseInt(txt_itiraz_id.getText());
+
+            // Cevaplama işlemlerini burada gerçekleştir
+            // Örneğin:
+            String cevap = cmb_cevap.getSelectedItem().toString(); // cmb_cevap'ten seçilen cevabı al
+
+            if (Itiraz.cevapla(itirazId, cevap)) {
+                Helper.showMsg("Itiraz cevaplandı.");
+                // Cevaplama başarılı olduysa, gerekli güncellemeleri yapabilirsiniz
+            } else {
+                Helper.showMsg("Itiraz cevaplanamadı.");
+            }*/
+        });
 
 
     }
+
 
     private void loadItirazModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_itiraz_list.getModel();
         clearModel.setRowCount(0);
-        int i = 0;
+
         for (Itiraz obj : Itiraz.getList()) {
-            i = 0;
+            int i = 0;
             row_itiraz_list[i++] = obj.getId();
             row_itiraz_list[i++] = obj.getName();
             row_itiraz_list[i++] = obj.getStatus();
-            row_itiraz_list[i++] = obj.getPrim().getName();
-            row_itiraz_list[i++] = obj.getOperator().getName();
+
+            // Ilgili Prim'in adını almak için Prim ID'sini kullan
+            Prim prim = Prim.getFetch(obj.getPrim_id());
+            String primName = prim != null ? prim.getName() : ""; // Eğer prim null ise boş string ata
+
+            // Ilgili Operatörün adını almak için Operator ID'sini kullan
+            User operator = User.getFetch(obj.getUser_id());
+            String operatorName = operator != null ? operator.getName() : ""; // Eğer operator null ise boş string ata
+
+            row_itiraz_list[i++] = primName;
+            row_itiraz_list[i++] = operatorName;
+
             mdl_itiraz_list.addRow(row_itiraz_list);
         }
     }
+
 
     private void loadPrimModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_prim_list.getModel();
@@ -324,6 +395,44 @@ public class OperatorGUI extends JFrame {
             cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
         }
     }
+    // Combobox'a itiraz isimlerini yükleme metodunu tanımla
+    private void loadItirazComboBox() {
+        cmb_itiraz_sec.removeAllItems(); // Önce mevcut öğeleri temizle
+        ArrayList<Itiraz> itirazList = Itiraz.getList(); // Tüm itirazları al
+
+        for (Itiraz itiraz : itirazList) {
+            cmb_itiraz_sec.addItem(itiraz.getName()); // Combobox'a her bir itirazın adını ekle
+        }
+    }
+
+    // Belirli bir isme sahip itirazı getiren metod
+    private Itiraz getItirazByName(String itirazName) {
+        // Örnek olarak, itirazların bulunduğu bir liste olduğunu varsayalım
+        ArrayList<Itiraz> itirazList = Itiraz.getList();
+
+        // Listeyi dönerek isme göre itirazı arayalım
+        for (Itiraz itiraz : itirazList) {
+            if (itiraz.getName().equals(itirazName)) {
+                return itiraz; // İsim bulunduğunda itirazı döndür
+            }
+        }
+
+        return null; // İsim bulunamadığında null döndür
+    }
+    // cmb_itiraz_sec combobox'ının içeriğini güncelle
+    private void updateItirazComboBox() {
+        cmb_itiraz_sec.removeAllItems(); // Mevcut öğeleri temizle
+
+        // Tüm itirazları al
+        ArrayList<Itiraz> itirazList = Itiraz.getList();
+
+        // Her bir itirazı combobox'a ekle
+        for (Itiraz itiraz : itirazList) {
+            cmb_itiraz_sec.addItem(String.valueOf(itiraz.getId())); // ID'leri ekleyin
+        }
+    }
+
+
 
     public static void main(String[] args) {
         Helper.setLayout();

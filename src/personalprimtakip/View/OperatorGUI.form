@@ -334,7 +334,7 @@
                   </component>
                 </children>
               </scrollpane>
-              <grid id="5067b" binding="pnl_itiraz_add" layout-manager="GridLayoutManager" row-count="10" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="5067b" binding="pnl_itiraz_add" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -347,12 +347,12 @@
                       <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="İtiraz"/>
+                      <text value="İtiraz ID"/>
                     </properties>
                   </component>
                   <vspacer id="5cbcc">
                     <constraints>
-                      <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                      <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                     </constraints>
                   </vspacer>
                   <component id="5461" class="javax.swing.JLabel">
@@ -360,58 +360,33 @@
                       <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Açıklaması"/>
+                      <text value="İtiraza Cevap"/>
                     </properties>
                   </component>
-                  <component id="925bc" class="javax.swing.JLabel">
+                  <component id="a0bf0" class="javax.swing.JButton" binding="btn_itiraz_cevap">
                     <constraints>
-                      <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Primler"/>
+                      <text value="Gönder"/>
                     </properties>
                   </component>
-                  <component id="256f7" class="javax.swing.JLabel">
+                  <component id="45ae7" class="javax.swing.JComboBox" binding="cmb_cevap">
                     <constraints>
-                      <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Operator"/>
+                      <model>
+                        <item value="Onaylandı"/>
+                        <item value="Reddedildi"/>
+                      </model>
                     </properties>
                   </component>
-                  <component id="b731e" class="javax.swing.JComboBox" binding="cmb_itiraz_operator">
+                  <component id="72db3" class="javax.swing.JTextField" binding="txt_itiraz_id">
                     <constraints>
-                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <model/>
-                    </properties>
-                  </component>
-                  <component id="a0bf0" class="javax.swing.JButton" binding="btn_itiraz_add">
-                    <constraints>
-                      <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Ekle"/>
-                    </properties>
-                  </component>
-                  <component id="ed4b3" class="javax.swing.JComboBox" binding="cmb_itiraz_prim">
-                    <constraints>
-                      <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="fc942" class="javax.swing.JTextField" binding="fld_itiraz_status">
-                    <constraints>
-                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                         <preferred-size width="150" height="-1"/>
                       </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="88428" class="javax.swing.JComboBox" binding="cmb_itiraz_sec">
-                    <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                   </component>
