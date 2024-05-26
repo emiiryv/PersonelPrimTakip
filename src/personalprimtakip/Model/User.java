@@ -69,7 +69,7 @@ public class User {
 
     public static ArrayList<User> getList() {
         ArrayList<User> userList = new ArrayList<>();
-        String query = "SELECT * FROM public.user";
+        String query = "SELECT * FROM public.users";
         User obj;
         try {
             Statement st = DBConnector.getInstance().createStatement();
@@ -90,7 +90,7 @@ public class User {
     }
 
     public static boolean add(String name, String uname, String pass, String type) {
-        String query = "INSERT INTO public.user (name, uname, pass, type) VALUES (?, ?, ?, ?::user_type)";
+        String query = "INSERT INTO public.users (name, uname, pass, type) VALUES (?, ?, ?, ?::user_type)";
         User findUser = User.getFetch(uname);
         if (findUser != null){
             Helper.showMsg("Bu kullanıcı adı daha önceden eklenmiş. Lütfen farklı bir kullanıcı adı giriniz.");
@@ -118,7 +118,7 @@ public class User {
 
     public static User getFetch(String uname){
         User obj = null;
-        String query = "SELECT * FROM public.user WHERE uname = ?";
+        String query = "SELECT * FROM public.users WHERE uname = ?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setString(1, uname);
@@ -138,7 +138,7 @@ public class User {
     }
     public static User getFetch(int id){
         User obj = null;
-        String query = "SELECT * FROM public.user WHERE id = ?";
+        String query = "SELECT * FROM public.users WHERE id = ?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setInt(1, id);
@@ -158,7 +158,7 @@ public class User {
     }
     public static User getFetch(String uname, String  pass){
         User obj = null;
-        String query = "SELECT * FROM public.user WHERE uname = ? AND pass = ?";
+        String query = "SELECT * FROM public.users WHERE uname = ? AND pass = ?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
             pr.setString(1, uname);
@@ -185,7 +185,7 @@ public class User {
     }
 
     public static boolean delete(int id){
-        String query = "DELETE FROM public.user WHERE id = ?";
+        String query = "DELETE FROM public.users WHERE id = ?";
         ArrayList<Itiraz> itirazList = Itiraz.getListByUser(id);
         for (Itiraz i : itirazList){
             Itiraz.delete(i.getId());
@@ -203,7 +203,7 @@ public class User {
     }
 
     public static boolean update(int id, String name, String uname, String pass, String type){
-        String query = "UPDATE public.user SET name = ?, uname = ?, pass = ?, type = ? WHERE id = ?";
+        String query = "UPDATE public.users SET name = ?, uname = ?, pass = ?, type = ? WHERE id = ?";
         User findUser = User.getFetch(uname);
         if (findUser != null && findUser.getId() != id){
             Helper.showMsg("Bu kullanıcı adı daha önce eklenmiş.");
@@ -245,7 +245,7 @@ public class User {
     }
 
     public static String searchQuery(String name, String uname, String type){
-        String query = "SELECT * FROM public.user WHERE uname LIKE '%" + uname + "%' AND name LIKE '%" + name + "%'";
+        String query = "SELECT * FROM public.users WHERE uname LIKE '%" + uname + "%' AND name LIKE '%" + name + "%'";
         if (!type.isEmpty()){
             query += " AND type = '" + type + "'";
         }
@@ -254,25 +254,25 @@ public class User {
         return query;
     }
     public static ArrayList<User> getListOnlyOperator() {
-        ArrayList<User> userList = new ArrayList<>();
-        String query = "SELECT * FROM public.user WHERE type = 'operator'";
-        User obj;
+        ArrayList<User> operatorList = new ArrayList<>();
+        String query = "SELECT * FROM operator_view";
+
         try {
-            Statement st = DBConnector.getInstance().createStatement();
-            ResultSet rs = st.executeQuery(query);
+            PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
+            ResultSet rs = pr.executeQuery();
             while (rs.next()) {
-                obj = new User();
-                obj.setId(rs.getInt("id"));
-                obj.setName(rs.getString("name"));
-                obj.setUname(rs.getString("uname"));
-                obj.setPass(rs.getString("pass"));
-                obj.setType(rs.getString("type"));
-                userList.add(obj);
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String uname = rs.getString("uname");
+                String pass = rs.getString("pass");
+                String type = rs.getString("type");
+                User obj = new User(id, name, uname, pass, type);
+                operatorList.add(obj);
             }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return userList;
+        return operatorList;
     }
 
 }

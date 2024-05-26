@@ -383,27 +383,34 @@ public class OperatorGUI extends JFrame {
     }
 
     public void loadPrimCombo() {
-        cmb_itiraz_prim.removeAllItems();
-        for (Prim obj : Prim.getList()) {
-            cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
+        if (cmb_itiraz_prim != null) { // Null kontrolü ekleyin
+            cmb_itiraz_prim.removeAllItems();
+            for (Prim obj : Prim.getList()) {
+                cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
+            }
         }
     }
+
 
     public void loadOperatorCombo() {
-        cmb_itiraz_operator.removeAllItems();
-        for (User obj : User.getListOnlyOperator()) {
-            cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
+        if (cmb_itiraz_operator != null) { // Null kontrolü ekleyin
+            cmb_itiraz_operator.removeAllItems();
+            for (User obj : User.getListOnlyOperator()) {
+                cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
+            }
         }
     }
-    // Combobox'a itiraz isimlerini yükleme metodunu tanımla
-    private void loadItirazComboBox() {
-        cmb_itiraz_sec.removeAllItems(); // Önce mevcut öğeleri temizle
-        ArrayList<Itiraz> itirazList = Itiraz.getList(); // Tüm itirazları al
 
-        for (Itiraz itiraz : itirazList) {
-            cmb_itiraz_sec.addItem(itiraz.getName()); // Combobox'a her bir itirazın adını ekle
+    // Combobox'a itiraz isimlerini yükleme metodunu tanımla
+    public void loadItirazComboBox() {
+        if (cmb_itiraz_sec != null) { // Null kontrolü ekleyin
+            cmb_itiraz_sec.removeAllItems();
+            for (Itiraz obj : Itiraz.getList()) {
+                cmb_itiraz_sec.addItem(new Item(obj.getId(), obj.getName()));
+            }
         }
     }
+
 
     // Belirli bir isme sahip itirazı getiren metod
     private Itiraz getItirazByName(String itirazName) {
@@ -430,6 +437,7 @@ public class OperatorGUI extends JFrame {
         for (Itiraz itiraz : itirazList) {
             cmb_itiraz_sec.addItem(String.valueOf(itiraz.getId())); // ID'leri ekleyin
         }
+
     }
 
 
