@@ -50,7 +50,6 @@ public class OperatorGUI extends JFrame {
     private JComboBox<Item> cmb_itiraz_operator;
     private JButton btn_itiraz_cevap;
     private JComboBox<Item> cmb_itiraz_prim;
-    private JComboBox cmb_itiraz_sec;
     private JComboBox cmb_cevap;
     private JTextField txt_itiraz_id;
     private DefaultTableModel mdl_user_list;
@@ -251,7 +250,7 @@ public class OperatorGUI extends JFrame {
             }
         });
 
-        loadItirazComboBox();
+
 
 
         tbl_itiraz_list.addMouseListener(new MouseAdapter() {
@@ -268,26 +267,6 @@ public class OperatorGUI extends JFrame {
 
 
 
-        cmb_itiraz_sec.addActionListener(e -> {
-            // Seçilen itirazın adını al
-            String selectedItirazName = (String) cmb_itiraz_sec.getSelectedItem();
-
-            // Seçilen itirazın detaylarını al
-            Itiraz selectedItiraz = getItirazByName(selectedItirazName);
-
-            // Detayları tabloya ekle
-            if (selectedItiraz != null) {
-                DefaultTableModel model = (DefaultTableModel) tbl_itiraz_list.getModel();
-                model.setRowCount(0); // Tabloyu temizle
-                model.addRow(new Object[]{
-                        selectedItiraz.getId(),
-                        selectedItiraz.getUser_id(),
-                        selectedItiraz.getPrim_id(),
-                        selectedItiraz.getStatus(),
-                        selectedItiraz.getAciklama()
-                });
-            }
-        });
 
 
         btn_itiraz_cevap.addActionListener(e -> {
@@ -295,7 +274,7 @@ public class OperatorGUI extends JFrame {
                 System.out.println("Gönder butonuna tıklandı!");
 
 
-            /*
+
             // txt_itiraz_id bileşeninden itirazın ID'sini al
             int itirazId = Integer.parseInt(txt_itiraz_id.getText());
 
@@ -308,7 +287,7 @@ public class OperatorGUI extends JFrame {
                 // Cevaplama başarılı olduysa, gerekli güncellemeleri yapabilirsiniz
             } else {
                 Helper.showMsg("Itiraz cevaplanamadı.");
-            }*/
+            }
         });
 
 
@@ -383,31 +362,16 @@ public class OperatorGUI extends JFrame {
     }
 
     public void loadPrimCombo() {
-        if (cmb_itiraz_prim != null) { // Null kontrolü ekleyin
-            cmb_itiraz_prim.removeAllItems();
-            for (Prim obj : Prim.getList()) {
-                cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
-            }
+        cmb_itiraz_prim.removeAllItems();
+        for (Prim obj : Prim.getList()) {
+            cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
         }
     }
-
 
     public void loadOperatorCombo() {
-        if (cmb_itiraz_operator != null) { // Null kontrolü ekleyin
-            cmb_itiraz_operator.removeAllItems();
-            for (User obj : User.getListOnlyOperator()) {
-                cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
-            }
-        }
-    }
-
-    // Combobox'a itiraz isimlerini yükleme metodunu tanımla
-    public void loadItirazComboBox() {
-        if (cmb_itiraz_sec != null) { // Null kontrolü ekleyin
-            cmb_itiraz_sec.removeAllItems();
-            for (Itiraz obj : Itiraz.getList()) {
-                cmb_itiraz_sec.addItem(new Item(obj.getId(), obj.getName()));
-            }
+        cmb_itiraz_operator.removeAllItems();
+        for (User obj : User.getListOnlyOperator()) {
+            cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
         }
     }
 
@@ -426,19 +390,7 @@ public class OperatorGUI extends JFrame {
 
         return null; // İsim bulunamadığında null döndür
     }
-    // cmb_itiraz_sec combobox'ının içeriğini güncelle
-    private void updateItirazComboBox() {
-        cmb_itiraz_sec.removeAllItems(); // Mevcut öğeleri temizle
 
-        // Tüm itirazları al
-        ArrayList<Itiraz> itirazList = Itiraz.getList();
-
-        // Her bir itirazı combobox'a ekle
-        for (Itiraz itiraz : itirazList) {
-            cmb_itiraz_sec.addItem(String.valueOf(itiraz.getId())); // ID'leri ekleyin
-        }
-
-    }
 
 
 

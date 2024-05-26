@@ -89,6 +89,7 @@ public class AsistanGUI extends JFrame {
         });
 
         btn_gonder.addActionListener(e -> {
+            System.out.println("gönder butonu");
             Prim selectedPrim = (Prim) cmb_prim_itiraz_listesi.getSelectedItem();
             String aciklama = fld_prim_itiraz_aciklama.getText();
             if (selectedPrim != null && !aciklama.isEmpty()) {
