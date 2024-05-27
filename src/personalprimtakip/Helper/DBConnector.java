@@ -12,7 +12,6 @@ public class DBConnector {
     public Connection connectDB(){
         try {
             this.connect = DriverManager.getConnection(Config.DB_URL,Config.DB_USERNAME,Config.DB_PASSWORD);
-            System.out.println("database baglantisi saglandi");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

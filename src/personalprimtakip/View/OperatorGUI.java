@@ -51,7 +51,6 @@ public class OperatorGUI extends JFrame {
     private JButton btn_itiraz_cevap;
     private JComboBox<Item> cmb_itiraz_prim;
     private JComboBox cmb_cevap;
-    private JTextField txt_itiraz_id;
     private DefaultTableModel mdl_user_list;
     private Object[] row_user_list;
     private DefaultTableModel mdl_prim_list;
@@ -64,7 +63,7 @@ public class OperatorGUI extends JFrame {
 
     public OperatorGUI(Operator operator) {
         this.operator = operator;
-
+        createUIComponents();
         add(wrapper);
         setSize(1000, 500);
         setLocation(Helper.screenCenter("x", getSize()), Helper.screenCenter("y", getSize()));
@@ -73,6 +72,8 @@ public class OperatorGUI extends JFrame {
         setVisible(true);
 
         lbl_welcome.setText("Hoşgeldiniz " + operator.getName());
+
+
 
         // UserList
         mdl_user_list = new DefaultTableModel() {
@@ -112,49 +113,12 @@ public class OperatorGUI extends JFrame {
                 }
                 loadUserModel();
                 loadOperatorCombo();
+                //loadPrimModel();
+                loadItirazModel();
             }
             loadItirazModel();
         });
 
-        // PrimList
-        primMenu = new JPopupMenu();
-        JMenuItem updateMenu = new JMenuItem("Güncelle");
-        JMenuItem deleteMenu = new JMenuItem("Sil");
-        primMenu.add(updateMenu);
-        primMenu.add(deleteMenu);
-
-        updateMenu.addActionListener(e -> {
-            int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(), 0).toString());
-            UpdatePrimGUI updatePrimGUI = new UpdatePrimGUI(Prim.getFetch(select_id));
-            updatePrimGUI.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowOpened(WindowEvent e) {
-                    loadPrimModel();
-                    loadPrimCombo();
-                    loadItirazModel();
-                }
-            });
-        });
-
-        deleteMenu.addActionListener(e -> {
-            if (Helper.confirm("sure")) {
-                int select_id = Integer.parseInt(tbl_prim_list.getValueAt(tbl_prim_list.getSelectedRow(), 0).toString());
-                if (Prim.delete(select_id)) {
-                    Helper.showMsg("done");
-                    loadPrimModel();
-                    loadPrimCombo();
-                    loadItirazModel();
-                } else {
-                    Helper.showMsg("error");
-                }
-            }
-        });
-
-        mdl_prim_list = new DefaultTableModel();
-        Object[] col_prim_list = {"ID", "Prim Listesi"};
-        mdl_prim_list.setColumnIdentifiers(col_prim_list);
-        row_prim_list = new Object[col_prim_list.length];
-        loadPrimModel();
 
         tbl_prim_list.setModel(mdl_prim_list);
         tbl_prim_list.setComponentPopupMenu(primMenu);
@@ -172,14 +136,18 @@ public class OperatorGUI extends JFrame {
 
         // Itiraz List
         mdl_itiraz_list = new DefaultTableModel();
-        Object[] col_itirazList = {"ID", "Itiraz Adı", "Durumu", "Prim", "Operator"};
+        Object[] col_itirazList = {"ID", "Durumu", "Prim", "Asistan", "Açıklama"};
         mdl_itiraz_list.setColumnIdentifiers(col_itirazList);
         row_itiraz_list = new Object[col_itirazList.length];
-        loadItirazModel();
+
+
         tbl_itiraz_list.setModel(mdl_itiraz_list);
         tbl_itiraz_list.getColumnModel().getColumn(0).setMaxWidth(75);
         tbl_itiraz_list.getTableHeader().setReorderingAllowed(false);
+        loadPrimTable();
+        //loadPrimModel();
 
+        loadItirazModel();
         loadPrimCombo();
         loadOperatorCombo();
 
@@ -200,6 +168,7 @@ public class OperatorGUI extends JFrame {
                     fld_user_uname.setText(null);
                     fld_user_pass.setText(null);
                 }
+                loadUserModel();
             }
         });
 
@@ -239,105 +208,112 @@ public class OperatorGUI extends JFrame {
             if (Helper.isFieldEmpty(fld_prim_name)) {
                 Helper.showMsg("fill");
             } else {
-                if (Prim.add(fld_prim_name.getText())) {
-                    Helper.showMsg("done");
-                    loadPrimModel();
-                    loadPrimCombo();
-                    fld_prim_name.setText(null);
-                } else {
-                    Helper.showMsg("error");
+                try {
+                    String primName = fld_prim_name.getText();
+                    if (Prim.add(primName, 0, 0)) { // Günlük ve aylık maaş bilgisi 0 olarak atanıyor
+                        Helper.showMsg("done");
+                        loadPrimTable();
+                        loadPrimCombo();
+                        fld_prim_name.setText(null);
+                    } else {
+                        Helper.showMsg("error");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Helper.showMsg("An error occurred while adding the prim.");
                 }
             }
         });
-
-
 
 
         tbl_itiraz_list.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 Point point = e.getPoint();
-                int selected_row = tbl_prim_list.rowAtPoint(point);
-                tbl_itiraz_list.setRowSelectionInterval(selected_row, selected_row);
+                int selectedRow = tbl_itiraz_list.rowAtPoint(point);
+                if (selectedRow != -1) { // Satır geçerli mi kontrol edin
+                    tbl_itiraz_list.setRowSelectionInterval(selectedRow, selectedRow);
+                }
             }
         });
 
 
-
-
-
-
-
-
         btn_itiraz_cevap.addActionListener(e -> {
+            int selectedRow = tbl_itiraz_list.getSelectedRow();
+            if (selectedRow == -1) {
+                Helper.showMsg("Lütfen bir itiraz seçiniz.");
+                return;
+            }
 
-                System.out.println("Gönder butonuna tıklandı!");
+            int itirazId = Integer.parseInt(tbl_itiraz_list.getValueAt(selectedRow, 0).toString());
 
+            // Seçili öğelerin null olup olmadığını kontrol et
+            Object selectedPrimItem = cmb_itiraz_prim.getSelectedItem();
+            Object selectedOperatorItem = cmb_itiraz_operator.getSelectedItem();
+            if (selectedPrimItem != null && selectedOperatorItem != null) {
+                String cevap = cmb_cevap.getSelectedItem().toString(); // Seçilen değeri al
 
-
-            // txt_itiraz_id bileşeninden itirazın ID'sini al
-            int itirazId = Integer.parseInt(txt_itiraz_id.getText());
-
-            // Cevaplama işlemlerini burada gerçekleştir
-            // Örneğin:
-            String cevap = cmb_cevap.getSelectedItem().toString(); // cmb_cevap'ten seçilen cevabı al
-
-            if (Itiraz.cevapla(itirazId, cevap)) {
-                Helper.showMsg("Itiraz cevaplandı.");
-                // Cevaplama başarılı olduysa, gerekli güncellemeleri yapabilirsiniz
+                if (Itiraz.cevapla(itirazId, cevap)) {
+                    Helper.showMsg("done");
+                    loadItirazModel(); // Tabloyu güncelle
+                } else {
+                    Helper.showMsg("error");
+                }
             } else {
-                Helper.showMsg("Itiraz cevaplanamadı.");
+                Helper.showMsg("Lütfen bir prim ve bir operatör seçiniz."); // Öğelerden biri veya her ikisi de null ise kullanıcıya bir hata mesajı göster
             }
         });
 
 
     }
 
-
     private void loadItirazModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_itiraz_list.getModel();
         clearModel.setRowCount(0);
-
         for (Itiraz obj : Itiraz.getList()) {
             int i = 0;
             row_itiraz_list[i++] = obj.getId();
-            row_itiraz_list[i++] = obj.getName();
             row_itiraz_list[i++] = obj.getStatus();
 
-            // Ilgili Prim'in adını almak için Prim ID'sini kullan
             Prim prim = Prim.getFetch(obj.getPrim_id());
-            String primName = prim != null ? prim.getName() : ""; // Eğer prim null ise boş string ata
+            String primName = prim != null ? prim.getName() : "";
 
-            // Ilgili Operatörün adını almak için Operator ID'sini kullan
-            User operator = User.getFetch(obj.getUser_id());
-            String operatorName = operator != null ? operator.getName() : ""; // Eğer operator null ise boş string ata
+            User assistant = User.getFetch(obj.getUser_id());
+            String assistantName = assistant != null ? assistant.getName() : "";
 
+            // Açıklama için Itiraz nesnesinden değeri alın
+            String aciklama = obj.getAciklama();
+
+            // Tabloya ekle
             row_itiraz_list[i++] = primName;
-            row_itiraz_list[i++] = operatorName;
+            row_itiraz_list[i++] = assistantName;
+            row_itiraz_list[i++] = aciklama;
 
             mdl_itiraz_list.addRow(row_itiraz_list);
         }
     }
 
 
-    private void loadPrimModel() {
+    /*
+    public void loadPrimModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_prim_list.getModel();
         clearModel.setRowCount(0);
-        int i = 0;
         for (Prim obj : Prim.getList()) {
-            i = 0;
+            int i = 0;
             row_prim_list[i++] = obj.getId();
             row_prim_list[i++] = obj.getName();
+            row_prim_list[i++] = obj.getDailySalary();
+            row_prim_list[i++] = obj.getMonthlySalary();
             mdl_prim_list.addRow(row_prim_list);
         }
-    }
+    }*/
+
 
     public void loadUserModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_user_list.getModel();
         clearModel.setRowCount(0);
-        int i = 0;
         for (User obj : User.getList()) {
-            i = 0;
+            int i = 0;
             row_user_list[i++] = obj.getId();
             row_user_list[i++] = obj.getName();
             row_user_list[i++] = obj.getUname();
@@ -362,36 +338,56 @@ public class OperatorGUI extends JFrame {
     }
 
     public void loadPrimCombo() {
-        cmb_itiraz_prim.removeAllItems();
-        for (Prim obj : Prim.getList()) {
-            cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
+        if (cmb_itiraz_prim != null) {
+            cmb_itiraz_prim.removeAllItems();
+            for (Prim obj : Prim.getList()) {
+                cmb_itiraz_prim.addItem(new Item(obj.getId(), obj.getName()));
+            }
+        } else {
+            System.err.println("cmb_itiraz_prim is null");
         }
     }
 
     public void loadOperatorCombo() {
-        cmb_itiraz_operator.removeAllItems();
+        if (cmb_itiraz_operator != null) {
+            cmb_itiraz_operator.removeAllItems();
+        }
         for (User obj : User.getListOnlyOperator()) {
             cmb_itiraz_operator.addItem(new Item(obj.getId(), obj.getName()));
         }
     }
+    private void loadPrimTable() {
+        DefaultTableModel primModel = new DefaultTableModel();
+        primModel.addColumn("ID");
+        primModel.addColumn("Prim Adı");
+        primModel.addColumn("Günlük Prim");
+        primModel.addColumn("Aylık Prim");
 
+        ArrayList<Prim> primList = Prim.getList();
+        for (Prim prim : primList) {
+            // Her bir prim için hesaplanan primleri al
+            double dailyPrim = Prim.calculateDailyPrim(prim.getId());
+            double monthlyPrim = Prim.calculateMonthlyPrim(prim.getId());
 
-    // Belirli bir isme sahip itirazı getiren metod
-    private Itiraz getItirazByName(String itirazName) {
-        // Örnek olarak, itirazların bulunduğu bir liste olduğunu varsayalım
-        ArrayList<Itiraz> itirazList = Itiraz.getList();
-
-        // Listeyi dönerek isme göre itirazı arayalım
-        for (Itiraz itiraz : itirazList) {
-            if (itiraz.getName().equals(itirazName)) {
-                return itiraz; // İsim bulunduğunda itirazı döndür
-            }
+            primModel.addRow(new Object[]{
+                    prim.getId(),
+                    prim.getName(),
+                    dailyPrim,
+                    monthlyPrim
+            });
         }
 
-        return null; // İsim bulunamadığında null döndür
+        tbl_prim_list.setModel(primModel); // Tablo modelini güncelle
     }
 
 
+
+    private void searchUserByType(String type) {
+        String name = fld_sh_user_name.getText();
+        String uname = fld_sh_user_uname.getText();
+        String query = User.searchQuery(name, uname, type);
+        loadUserModel(User.searchUserList(query));
+    }
 
 
     public static void main(String[] args) {
@@ -401,11 +397,21 @@ public class OperatorGUI extends JFrame {
         op.setName("Emir");
         op.setPass("123");
         op.setUname("emo");
-
         new OperatorGUI(op);
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
+        //cbm_user_type = new JComboBox<>();
+        //cmb_sh_user_type = new JComboBox<>();
+        cmb_itiraz_operator = new JComboBox<>();
+        cmb_itiraz_prim = new JComboBox<>();
+        //cmb_cevap = new JComboBox<>(new String[]{"Onayla", "Reddet"});
+
+        // tbl_prim_list için bir TableModel oluşturun
+        mdl_prim_list = new DefaultTableModel();
+        Object[] col_prim_list = {"ID", "Prim Adı", "Günlük Prim", "Aylık Prim"};
+        mdl_prim_list.setColumnIdentifiers(col_prim_list);
+        row_prim_list = new Object[col_prim_list.length];
     }
+
 }

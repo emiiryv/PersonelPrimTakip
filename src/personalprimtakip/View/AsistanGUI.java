@@ -16,7 +16,7 @@ public class AsistanGUI extends JFrame {
     private JPanel wrapper;
     private JTabbedPane tabbedPane1;
     private JTextField fld_musteri_adi;
-    private JTextField fld_gorusme_tarihi;
+    private JTextField fld_gorusme_suresi;
     private JComboBox<String> cmb_gorusme_durumu;
     private JButton btn_add_gorusme;
     private JTable tbl_gorusme_listesi;
@@ -25,6 +25,7 @@ public class AsistanGUI extends JFrame {
     private JComboBox<Prim> cmb_prim_listesi; // Primler için JComboBox
     private JTable tbl_prim_list;
     private JComboBox<Prim> cmb_prim_itiraz_listesi; // Primler için itiraz JComboBox
+
     private JTextField fld_prim_itiraz_aciklama;
     private JButton btn_gonder;
     private JTable tbl_itirazlarim; // Kullanıcının itirazlarını göstermek için tablo
@@ -47,17 +48,19 @@ public class AsistanGUI extends JFrame {
         loadGorusmeTable(); // Görüşme listesini yükle
         loadItirazTable(); // Kullanıcının itirazlarını yükle
 
+
+
         btn_cikis.addActionListener(e -> {
             dispose();
             new LoginGUI();
         });
 
         btn_add_gorusme.addActionListener(e -> {
-            if (Helper.isFieldEmpty(fld_musteri_adi) || Helper.isFieldEmpty(fld_gorusme_tarihi)) {
+            if (Helper.isFieldEmpty(fld_musteri_adi) || Helper.isFieldEmpty(fld_gorusme_suresi)) {
                 Helper.showMsg("fill");
             } else {
                 String name = fld_musteri_adi.getText();
-                String tarih = fld_gorusme_tarihi.getText();
+                int sure = Integer.parseInt(fld_gorusme_suresi.getText());
                 String gorusme_konusu = cmb_gorusme_konusu.getSelectedItem().toString();
                 String gorusme_durumu = cmb_gorusme_durumu.getSelectedItem().toString();
 
@@ -70,14 +73,15 @@ public class AsistanGUI extends JFrame {
                     return;
                 }
 
-                if (Gorusme.add(user_id, prim_id, name, tarih, gorusme_konusu, gorusme_durumu)) {
+                if (Gorusme.add(user_id, prim_id, name, sure, gorusme_konusu, gorusme_durumu)) {
                     Helper.showMsg("done");
                     fld_musteri_adi.setText(null); // Ekleme işlemi başarılı olduğunda, alanları temizleyin
-                    fld_gorusme_tarihi.setText(null);
+                    fld_gorusme_suresi.setText(null);
                     loadGorusmeTable(); // Görüşme listesini güncelle
                 } else {
                     Helper.showMsg("error");
                 }
+                loadPrimTable();
             }
         });
 
@@ -118,7 +122,7 @@ public class AsistanGUI extends JFrame {
         gorusmeModel.addColumn("Kullanıcı ID");
         gorusmeModel.addColumn("Prim ID");
         gorusmeModel.addColumn("Ad");
-        gorusmeModel.addColumn("Tarih");
+        gorusmeModel.addColumn("Süre");
         gorusmeModel.addColumn("Konu");
         gorusmeModel.addColumn("Durum");
 
@@ -129,14 +133,16 @@ public class AsistanGUI extends JFrame {
                     gorusme.getUser_id(),
                     gorusme.getPrim_id(),
                     gorusme.getName(),
-                    gorusme.getTarih(),
+                    gorusme.getSure(),
                     gorusme.getGorusme_konu(),
                     gorusme.getGorusme_durum()
             });
         }
 
-        tbl_gorusme_listesi.setModel(gorusmeModel);
+        tbl_gorusme_listesi.setModel(gorusmeModel); // Tablo modelini tabloya set edin
     }
+
+
 
     private void loadPrimComboBox() {
         cmb_prim_itiraz_listesi.removeAllItems(); // Önce mevcut öğeleri temizle
@@ -149,21 +155,30 @@ public class AsistanGUI extends JFrame {
         }
     }
 
+    // AsistanGUI sınıfı içindeki loadPrimTable metodunu güncelleyerek hesaplanan primi sütun olarak ekleyebiliriz.
+    // AsistanGUI sınıfı içindeki loadPrimTable metodunu güncelleyerek hesaplanan primi sütun olarak ekleyebiliriz.
     private void loadPrimTable() {
         DefaultTableModel primModel = new DefaultTableModel();
         primModel.addColumn("ID");
         primModel.addColumn("Ad");
+        primModel.addColumn("Günlük Prim"); // Yeni sütun: Günlük Prim
 
         ArrayList<Prim> primList = Prim.getList();
         for (Prim prim : primList) {
+            // Her bir prim için hesaplanan primi al
+            double dailyPrim = Prim.calculateDailyPrim(prim.getId());
+
             primModel.addRow(new Object[]{
                     prim.getId(),
-                    prim.getName()
+                    prim.getName(),
+                    dailyPrim // Hesaplanan günlük primi ekle
             });
         }
 
-        tbl_prim_list.setModel(primModel);
+        tbl_prim_list.setModel(primModel); // Tablo modelini tabloya set et
     }
+
+
 
     private void loadItirazTable() {
         DefaultTableModel itirazModel = new DefaultTableModel();
@@ -194,9 +209,9 @@ public class AsistanGUI extends JFrame {
     }
 
     private void createUIComponents() {
-        cmb_prim_listesi = new JComboBox<>(); // JComboBox'ı oluşturun
-        cmb_prim_itiraz_listesi = new JComboBox<>(); // JComboBox'ı oluşturun
-        tbl_itirazlarim = new JTable(); // JTable'ı oluşturun
+        cmb_prim_listesi = new JComboBox<>(Prim.getList().toArray(new Prim[0])); // Prim listesini kullanarak JComboBox'ı oluştur
+        cmb_prim_itiraz_listesi = new JComboBox<>(Prim.getList().toArray(new Prim[0])); // Prim listesini kullanarak JComboBox'ı oluştur
+        tbl_itirazlarim = new JTable(); // JTable'ı oluştur
     }
-}
 
+}

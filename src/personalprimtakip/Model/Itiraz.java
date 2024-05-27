@@ -75,20 +75,19 @@ public class Itiraz {
         this.aciklama = aciklama;
     }
 
-    // Veritabanından liste alırken user_id'yi dikkate alacak şekilde güncellendi
     public static ArrayList<Itiraz> getList() {
         ArrayList<Itiraz> itirazList = new ArrayList<>();
 
         try {
             Statement st = DBConnector.getInstance().createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM public.itiraz");
+            ResultSet rs = st.executeQuery("SELECT * FROM itiraz_view");
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int user_id = rs.getInt("user_id");
                 int prim_id = rs.getInt("prim_id");
                 String name = rs.getString("name");
                 String status = rs.getString("status");
-                String aciklama = rs.getString("aciklama"); // Açıklama alanını da oku
+                String aciklama = rs.getString("aciklama");
                 Itiraz obj = new Itiraz(id, user_id, prim_id, name, status, aciklama);
                 itirazList.add(obj);
             }
@@ -98,7 +97,8 @@ public class Itiraz {
         return itirazList;
     }
 
-    // Kullanıcıya göre listeleme yaparken user_id'yi dikkate alacak şekilde güncellendi
+
+
     public static ArrayList<Itiraz> getListByUser(int user_id) {
         ArrayList<Itiraz> itirazList = new ArrayList<>();
 
@@ -121,7 +121,6 @@ public class Itiraz {
         return itirazList;
     }
 
-    // Yeni bir itiraz eklemek için metot eklendi
     public static boolean add(int user_id, int prim_id, String name, String status, String aciklama) {
         String query = "INSERT INTO public.itiraz (user_id, prim_id, name, status, aciklama) VALUES (?, ?, ?, ?, ?)";
 
@@ -153,17 +152,18 @@ public class Itiraz {
         }
         return false;
     }
-    public static boolean cevapla(int itirazId, String cevap) {
-        String query = "UPDATE public.itiraz SET cevap = ? WHERE id = ?";
+    public static boolean cevapla(int id, String status) {
+        String query = "UPDATE public.itiraz SET status = ? WHERE id = ?";
         try {
             PreparedStatement pr = DBConnector.getInstance().prepareStatement(query);
-            pr.setString(1, cevap);
-            pr.setInt(2, itirazId);
-            return pr.executeUpdate() > 0;
+            pr.setString(1, status);
+            pr.setInt(2, id);
+            return pr.executeUpdate() != -1;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
+
 
 }
